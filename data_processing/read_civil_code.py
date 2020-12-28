@@ -38,19 +38,30 @@ arg_parser.add_argument(
 
 article_re = re.compile(r'^Article\s*([0-9]+(-\d+)?)\s')
 chapter_re = re.compile(r'^Chapter\s*([MDCLXVI]+)\s')
+section_re = re.compile(r'^Section\s*([0-9]+(-\d+)?)\s')
+deleted_articles_re = re.compile(r'^Articles.*(to|through|and).*Deleted$')
 
 
 def run():
     file = open(data_file)
-    count = 0
     cur_article = ""
+    cur_title = ""
+    prev_title = ""
     content = []
-    for line in file:
-        count += 1
-        if count % 100 == 0:
-            print(count)
+    lines = file.readlines()
+    # i = 0
+    # n = len(lines)
+    # while i < n:
+    for i, line in enumerate(lines):
+        if i % 100 == 0:
+            print(i)
 
-        if chapter_re.search(line):
+        line = line.strip()
+        if chapter_re.search(line) or section_re.search(line) or deleted_articles_re.match(line):
+            continue
+
+        if line[0] == '(' and line[-1] == ')':
+            cur_title = line[1:-1]
             continue
 
         check_article = article_re.search(line)
@@ -58,11 +69,14 @@ def run():
             if cur_article != "":
                 collection.insert({
                     "code": cur_article,
-                    "content": ''.join(content)
+                    "title": prev_title,
+                    "content": '\n'.join(content)
                 })
 
             content = []
             cur_article = check_article.groups()[0]
+            prev_title = cur_title
+            cur_title = ''
             line = line[check_article.span()[1] + 1:]
 
         content.append(line)
