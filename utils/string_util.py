@@ -4,7 +4,7 @@ from nltk.tokenize import word_tokenize
 import re
 
 table = str.maketrans('', '', string.punctuation)
-number_re = re.compile(r'\d+([.,]\d+)*')
+number_re = re.compile(r'^\d+([.,-]\d+)*$')
 clause_re = re.compile(r'^\(\d+\)')
 
 

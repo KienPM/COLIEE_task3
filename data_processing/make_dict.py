@@ -1,12 +1,17 @@
 """ Create by Ken at 2020 Dec 28 """
 import os
-import re
+import sys
 import argparse
 from sklearn.feature_extraction.text import CountVectorizer
-from nltk.tokenize import word_tokenize
 from pymongo import MongoClient
 from tqdm import tqdm
 import numpy as np
+
+sys.path.append(os.path.dirname(os.getcwd()))
+from utils.string_util import remove_numbering, pre_process_text
+
+MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
+MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
 
 arg_parser = argparse.ArgumentParser(description='Make stopwords')
 arg_parser.add_argument(
@@ -40,6 +45,12 @@ arg_parser.add_argument(
     help='Training data collection name'
 )
 arg_parser.add_argument(
+    '--do_auth',
+    type=bool,
+    default=False,
+    help='Do authenticate or not'
+)
+arg_parser.add_argument(
     '--min_df',
     type=int,
     default=0,
@@ -59,20 +70,30 @@ arg_parser.add_argument(
 )
 args = arg_parser.parse_args()
 
-mongo_client = MongoClient(args.db_host, args.db_port)
+if args.do_auth:
+    mongo_client = MongoClient(
+        args.db_host, args.db_port,
+        username=MONGO_USER,
+        password=MONGO_PASS,
+        authSource=args.db_name,
+        authMechanism='SCRAM-SHA-1'
+    )
+else:
+    mongo_client = MongoClient(args.db_host, args.db_port)
+
 db = mongo_client[args.db_name]
 civil_code_collection = db[args.civil_code_collection]
 training_data_collection = db[args.training_data_collection]
 output_file = args.output_file
-
-clause_re = re.compile(r'^\(\d+\)')
 
 
 def load_doc_data():
     documents = []
     records = list(civil_code_collection.find())
     for record in tqdm(records):
-        documents.append(record['title'] + ' ' + record['content'])
+        documents.append(record['title'])
+        for line in record['content'].split('\n'):
+            documents.append(remove_numbering(line))
 
     return documents
 
@@ -86,22 +107,11 @@ def load_question_data():
     return documents
 
 
-def tokenizer(s):
-    return word_tokenize(s)
-
-
-def pre_process_line(line):
-    match_clause = clause_re.match(line)
-    if match_clause:
-        line = line[match_clause.span()[1] + 1:]
-    return line
-
-
 def process(documents):
     """
     :param documents: list of documents
     """
-    vectorizer = CountVectorizer(min_df=args.min_df, tokenizer=tokenizer)
+    vectorizer = CountVectorizer(min_df=args.min_df, tokenizer=pre_process_text)
     vector = vectorizer.fit_transform(documents)
     vector = vector.toarray()
     vector = np.sum(vector, axis=0)
@@ -128,4 +138,3 @@ def process(documents):
 if __name__ == '__main__':
     docs = load_doc_data() + load_question_data()
     process(docs)
-    # print(pre_process_line('(2) The exercise of rights and performance of duties must be done in good faith.'))
