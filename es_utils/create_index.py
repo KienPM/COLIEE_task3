@@ -3,7 +3,7 @@
 import os
 import sys
 
-sys.path.append(os.path.join('..', os.getcwd()))
+sys.path.append(os.path.dirname(os.getcwd()))
 import argparse
 
 from elasticsearch import Elasticsearch
@@ -27,7 +27,7 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--db_port',
     type=int,
-    default=27017,
+    default=5007,
     help='MongoDB port'
 )
 arg_parser.add_argument(
@@ -46,7 +46,7 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--do_auth',
     type=bool,
-    default=False,
+    default=True,
     help='Do authenticate or not'
 )
 
