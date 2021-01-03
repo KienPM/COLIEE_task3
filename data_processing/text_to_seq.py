@@ -2,11 +2,15 @@
 Create by Ken at 2021 Jan 02
 Convert text to int sequence
 """
+import os
+import sys
 import argparse
 from pymongo import MongoClient
 from tqdm import tqdm
 from nltk import sent_tokenize
-from data_processing.util import sentence_to_seq
+
+sys.path.append(os.path.dirname(os.getcwd()))
+from utils.string_util import sentence_to_seq
 
 arg_parser = argparse.ArgumentParser(description='Text to sequence')
 arg_parser.add_argument(
@@ -18,7 +22,7 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--db_port',
     type=int,
-    default=27017,
+    default=5007,
     help='MongoDB port'
 )
 arg_parser.add_argument(
@@ -34,11 +38,20 @@ arg_parser.add_argument(
     help='MongoDB input collection name'
 )
 arg_parser.add_argument(
+    '--do_auth',
+    type=bool,
+    default=True,
+    help='Do authenticate or not'
+)
+arg_parser.add_argument(
     '--dict_file',
     type=str,
     default='output/dict.tsv',
     help='Path to dict file'
 )
+
+MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
+MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
 
 
 def parse_dict_file():
@@ -87,7 +100,18 @@ def process_doc(document):
 
 if __name__ == '__main__':
     args = arg_parser.parse_args()
-    mongo_client = MongoClient(args.db_host, args.db_port)
+
+    if args.do_auth:
+        mongo_client = MongoClient(
+            args.db_host, args.db_port,
+            username=MONGO_USER,
+            password=MONGO_PASS,
+            authSource=args.db_name,
+            authMechanism='SCRAM-SHA-1'
+        )
+    else:
+        mongo_client = MongoClient(args.db_host, args.db_port)
+
     db = mongo_client[args.db_name]
     input_collection = db[args.db_input_collection]
 
