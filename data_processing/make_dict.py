@@ -45,9 +45,9 @@ arg_parser.add_argument(
     help='Training data collection name'
 )
 arg_parser.add_argument(
-    '--do_auth',
+    '--ignore_auth',
     type=bool,
-    default=False,
+    action="store_false",
     help='Do authenticate or not'
 )
 arg_parser.add_argument(
@@ -70,7 +70,9 @@ arg_parser.add_argument(
 )
 args = arg_parser.parse_args()
 
-if args.do_auth:
+if args.ignore_auth:
+    mongo_client = MongoClient(args.db_host, args.db_port)
+else:
     mongo_client = MongoClient(
         args.db_host, args.db_port,
         username=MONGO_USER,
@@ -78,8 +80,6 @@ if args.do_auth:
         authSource=args.db_name,
         authMechanism='SCRAM-SHA-1'
     )
-else:
-    mongo_client = MongoClient(args.db_host, args.db_port)
 
 db = mongo_client[args.db_name]
 civil_code_collection = db[args.civil_code_collection]

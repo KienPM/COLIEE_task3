@@ -1,4 +1,5 @@
 """ Create by Ken at 2020 Dec 23 """
+import os
 import argparse
 import re
 
@@ -30,11 +31,20 @@ arg_parser.add_argument(
     help='Collection name'
 )
 arg_parser.add_argument(
+    '--ignore_auth',
+    type=bool,
+    action="store_false",
+    help='Do authenticate or not'
+)
+arg_parser.add_argument(
     '--data_file',
     type=str,
     default='/media/ken/Temp/TrainingData/COLIEE_Task3/COLIEE2020statute_data-English/text/civil_code_en-1to724-2.txt',
     help='Path to Civil Code file'
 )
+
+MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
+MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
 
 article_re = re.compile(r'^Article\s*([0-9]+(-\d+)?)\s')
 chapter_re = re.compile(r'^Chapter\s*([MDCLXVI]+)\s')
@@ -90,7 +100,17 @@ if __name__ == '__main__':
     db_collection = args.collection
     data_file = args.data_file
 
-    mongo_client = MongoClient(db_host, db_port)
+    if args.ignore_auth:
+        mongo_client = MongoClient(args.db_host, args.db_port)
+    else:
+        mongo_client = MongoClient(
+            args.db_host, args.db_port,
+            username=MONGO_USER,
+            password=MONGO_PASS,
+            authSource=args.db_name,
+            authMechanism='SCRAM-SHA-1'
+        )
+
     db = mongo_client[db_name]
     collection = db[db_collection]
     collection.delete_many({})

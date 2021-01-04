@@ -1,4 +1,5 @@
 """ Create by Ken at 2020 Dec 23 """
+import os
 import argparse
 import glob
 import xml.etree.ElementTree as ET
@@ -31,12 +32,20 @@ arg_parser.add_argument(
     help='Collection name'
 )
 arg_parser.add_argument(
+    '--ignore_auth',
+    type=bool,
+    action="store_false",
+    help='Do authenticate or not'
+)
+arg_parser.add_argument(
     '--train_data_dir',
     type=str,
     default='/media/ken/Temp/TrainingData/COLIEE_Task3/COLIEE2020statute_data-English/train',
     help='Path to training data directory'
 )
 
+MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
+MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
 article_re = re.compile(r'\nArticle\s*([0-9]+(-\d+)?)\n')
 
 
@@ -63,7 +72,16 @@ if __name__ == '__main__':
     db_collection = args.collection
     train_data_dir = args.train_data_dir
 
-    mongo_client = MongoClient(db_host, db_port)
+    if args.ignore_auth:
+        mongo_client = MongoClient(args.db_host, args.db_port)
+    else:
+        mongo_client = MongoClient(
+            args.db_host, args.db_port,
+            username=MONGO_USER,
+            password=MONGO_PASS,
+            authSource=args.db_name,
+            authMechanism='SCRAM-SHA-1'
+        )
     db = mongo_client[db_name]
     collection = db[db_collection]
     collection.delete_many({})
