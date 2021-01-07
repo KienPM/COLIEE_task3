@@ -33,6 +33,7 @@ def main():
         negative = [item for item in experiment_data[str(_id)] if item not in positive]
         output_collection.insert_one({
             "_id": _id,
+            "query": record["query"],
             "positive": positive,
             "negative": negative
         })
