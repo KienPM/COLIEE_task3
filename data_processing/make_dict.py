@@ -23,7 +23,7 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--db_port',
     type=int,
-    default=27017,
+    default=5007,
     help='MongoDB port'
 )
 arg_parser.add_argument(
@@ -46,9 +46,8 @@ arg_parser.add_argument(
 )
 arg_parser.add_argument(
     '--ignore_auth',
-    type=bool,
     action="store_false",
-    help='Do authenticate or not'
+    help='Ignore authenticate or not'
 )
 arg_parser.add_argument(
     '--min_df',
