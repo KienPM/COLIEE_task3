@@ -201,7 +201,7 @@ if __name__ == '__main__':
     )
     arg_parser.add_argument(
         '--not_random_es_negative',
-        action="store_false",
+        action="store_true",
         help='Random sample ES negative'
     )
     arg_parser.add_argument(

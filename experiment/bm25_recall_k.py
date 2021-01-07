@@ -44,10 +44,9 @@ arg_parser.add_argument(
     help='MongoDB ground truth doc_collection name'
 )
 arg_parser.add_argument(
-    '--do_auth',
-    type=bool,
-    default=True,
-    help='Do authenticate or not'
+    '--ignore_auth',
+    action='store_true',
+    help='Ignore authenticate or not'
 )
 arg_parser.add_argument(
     '--k',
@@ -57,7 +56,9 @@ arg_parser.add_argument(
 )
 args = arg_parser.parse_args()
 
-if args.do_auth:
+if args.ignore_auth:
+    mongo_client = MongoClient(args.db_host, args.db_port)
+else:
     mongo_client = MongoClient(
         args.db_host, args.db_port,
         username=MONGO_USER,
@@ -65,8 +66,6 @@ if args.do_auth:
         authSource=args.db_name,
         authMechanism='SCRAM-SHA-1'
     )
-else:
-    mongo_client = MongoClient(args.db_host, args.db_port)
 
 db = mongo_client[args.db_name]
 ground_truth_collection = db[args.train_data_collection]

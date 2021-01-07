@@ -33,8 +33,8 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--ignore_auth',
     type=bool,
-    action="store_false",
-    help='Do authenticate or not'
+    action="store_true",
+    help='Ignore authenticate or not'
 )
 arg_parser.add_argument(
     '--data_file',

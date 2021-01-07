@@ -46,7 +46,7 @@ arg_parser.add_argument(
 )
 arg_parser.add_argument(
     '--ignore_auth',
-    action="store_false",
+    action="store_true",
     help='Ignore authenticate or not'
 )
 arg_parser.add_argument(

@@ -44,10 +44,9 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
-    '--do_auth',
-    type=bool,
-    default=True,
-    help='Do authenticate or not'
+    '--ignore_auth',
+    action='store_true',
+    help='Ignore authenticate or not'
 )
 
 arg_parser.add_argument(
@@ -59,18 +58,15 @@ arg_parser.add_argument(
 )
 
 args = arg_parser.parse_args()
-do_auth = args.do_auth
-if do_auth:
+if args.ignore_auth:
+    mongo_client = MongoClient(args.db_host, args.db_port)
+else:
     mongo_client = MongoClient(
         args.db_host, args.db_port,
         username=MONGO_USER,
         password=MONGO_PASS,
         authSource=args.db_name,
         authMechanism='SCRAM-SHA-1'
-    )
-else:
-    mongo_client = MongoClient(
-        args.db_host, args.db_port,
     )
 db = mongo_client[args.db_name]
 collection = db[args.db_collection]
