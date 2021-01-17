@@ -86,12 +86,12 @@ def get_top_k(text_query):
 if __name__ == '__main__':
     examples = list(test_data_collection.find())
     os.makedirs('output', exist_ok=True)
-    output = open(f'output/bm25_{top_k}_results.csv', 'w')
+    output = open(f'output/bm25_{top_k}_results.txt', 'w')
     for example in tqdm(examples):
         query = example["query"]
         articles_scores = get_top_k(query)
         for index, item in enumerate(articles_scores):
-            res_line = f"{example['pair_id']} Q0 {item['article']} {index + 1} {item['combined_score']} ken"
+            res_line = f"{example['pair_id']} Q0 {item['article']} {index + 1} {item['score']} ken"
             output.write(f'{res_line}\n')
 
     output.close()
