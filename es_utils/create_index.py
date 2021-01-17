@@ -96,11 +96,11 @@ class CivilArticle(document.DocType):
         name = index_name
 
 
-# Tạo kết nối
+# Create connection
 es = Elasticsearch()
 connections.create_connection(hosts=['localhost'], timeout=20)
-connections.add_connection('CivilArticle', es)  # Thêm một doc_type có tên vbpl vào connections
-CivilArticle.init(index_name)  # Khởi tạo class Doctype với tên Index
+connections.add_connection('CivilArticle', es)
+CivilArticle.init(index_name)
 
 
 def preprocess_content(content):
