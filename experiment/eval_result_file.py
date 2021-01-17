@@ -76,9 +76,9 @@ def evaluate():
         total_f2 += f2
 
     num_examples = len(rel)
+    print(f'F2: {total_f2 / num_examples}')
     print(f'Precision: {total_precision / num_examples}')
     print(f'Recall: {total_recall / num_examples}')
-    print(f'F2: {total_f2 / num_examples}')
 
 
 if __name__ == '__main__':
