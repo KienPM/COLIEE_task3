@@ -1,5 +1,4 @@
 """ Create by Ken at 2021 Jan 17 """
-import os
 import argparse
 
 arg_parser = argparse.ArgumentParser(description='Encode articles')
@@ -7,14 +6,13 @@ arg_parser = argparse.ArgumentParser(description='Encode articles')
 arg_parser.add_argument(
     '--rel_file',
     type=str,
-    default='/media/ken/Temp/TrainingData/COLIEE_Task3/COLIEE2020statute_data-English/test/task3_test_labels.txt',
+    default='/home/mlalab/dev/COLIEE_task3/data/COLIEE2020statute_data-English/test/task3_test_labels.txt',
     help='Path to relevant file'
 )
 
 arg_parser.add_argument(
     '--result_file',
     type=str,
-    default='/media/ken/Temp/TrainingData/COLIEE_Task3/experiment results/exp01_es_w_0.0_es_limit_300_100_results.txt',
     help='Path to result file'
 )
 
