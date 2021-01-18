@@ -10,9 +10,9 @@ from tensorflow.keras.layers import *
 
 sys.path.append(os.path.dirname(os.getcwd()))
 
-INPUT_VOCAB_SIZE = 3102
-MAX_QUERY_LEN = 40
-MAX_NUM_SENTENCES = 30
+INPUT_VOCAB_SIZE = 2245
+MAX_QUERY_LEN = 150
+MAX_NUM_SENTENCES = 35
 MAX_SENTENCE_LEN = 25
 GROUP_SIZE = 101
 D_EMBEDDING = 512
