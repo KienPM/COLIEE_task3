@@ -14,42 +14,10 @@ from pymongo import MongoClient
 
 sys.path.append(os.path.dirname(os.getcwd()))
 from utils.string_util import sentence_to_seq
+from utils.padding_utils import pad_query, pad_sentence, pad_article
 
 MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
 MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
-
-
-def pad_query(vec):
-    vec = vec[:max_query_len]
-    if len(vec) < max_query_len:
-        vec.extend([0] * (max_query_len - len(vec)))
-    return vec
-
-
-def pad_sentence(seq):
-    """
-    Padding
-    Split if len > max seq len
-    """
-    res = []
-    seq_len = len(seq)
-    i = 0
-    while i < seq_len:
-        temp = seq[i:i + max_sen_len]
-        temp_len = len(temp)
-        if temp_len < max_sen_len:
-            temp.extend([0] * (max_sen_len - temp_len))
-        res.append(temp)
-        i += max_sen_len
-
-    return res
-
-
-def pad_article(vec):
-    vec = vec[:max_num_sen]
-    if len(vec) < max_num_sen:
-        vec.extend([[0] * max_sen_len] * (max_num_sen - len(vec)))
-    return vec
 
 
 def load_all_articles():
@@ -86,7 +54,7 @@ def main():
     records = list(negative_sampling_collection.find())
     for record in tqdm(records):
         query = sentence_to_seq(record['query'], text_to_seq_dict)
-        query = pad_query(query)
+        query = pad_query(query, max_query_len)
         record_negative = record["negative"][:num_es_negative + 5]
         taken = set(record["positive"] + record_negative)
         num_taken = len(taken)
@@ -111,8 +79,8 @@ def main():
                 content = all_articles_map[a]
                 a_seq = []
                 for s in content:
-                    a_seq.extend(pad_sentence(s))
-                a_seq = pad_article(a_seq)
+                    a_seq.extend(pad_sentence(s, max_sen_len))
+                a_seq = pad_article(a_seq, max_num_sen=max_num_sen, max_sen_len=max_sen_len)
                 articles_seq.append(a_seq)
 
             labels = [0] * len(articles)
@@ -184,13 +152,13 @@ if __name__ == '__main__':
     arg_parser.add_argument(
         '--max_query_len',
         type=int,
-        default=40,
+        default=150,
         help='Max query len'
     )
     arg_parser.add_argument(
         '--max_num_sen',
         type=int,
-        default=30,
+        default=35,
         help='Max number of sentences per article'
     )
     arg_parser.add_argument(
