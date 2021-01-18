@@ -5,7 +5,7 @@ import sys
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 sys.path.append(os.path.dirname(os.getcwd()))
-from model.han_sparsemax_model import create_model
+from model.han_model import create_model
 
 arg_parser = argparse.ArgumentParser(description='Split model')
 arg_parser.add_argument(
