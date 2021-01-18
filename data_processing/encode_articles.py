@@ -10,7 +10,7 @@ import tensorflow as tf
 from pymongo import MongoClient
 
 sys.path.append(os.path.dirname(os.getcwd()))
-from model.han_sparsemax_model import create_model
+from model.han_model import create_model
 from utils.padding_utils import pad_sentence, pad_article
 
 arg_parser = argparse.ArgumentParser(description='Encode articles')
@@ -52,7 +52,7 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--max_num_sen',
     type=int,
-    default=30,
+    default=35,
     help='Max number of sentences per article'
 )
 arg_parser.add_argument(
