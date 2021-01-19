@@ -57,7 +57,7 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--es_output_file',
     type=str,
-    default='../data/pre_fetched_bm25_500_results.csv',
+    default='output/pre_fetched_bm25_500_results.csv',
     help='Path to ES output file'
 )
 arg_parser.add_argument(
