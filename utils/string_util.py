@@ -7,7 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
 
 table = str.maketrans('', '', string.punctuation)
-number_re = re.compile(r'^\d+([.,:-]\d+)*')
+number_re = re.compile(r'^\d+([.,:-]\d+)*|^<number>$')
 clause_re = re.compile(r'^\(\d+\)')
 point_re = re.compile(r'^\([mdclxvi]+\)')
 lemmatizer = WordNetLemmatizer()
@@ -62,6 +62,11 @@ def pre_process_text(text):
 
     # convert to lower case
     tokens = [w.lower() for w in lemmatized_tokens]
+
+    # special processing for point number in text
+    for i in range(1, len(tokens) - 1):
+        if tokens[i - 1] == '(' and re.match(r'^[mdclxvi]+$', tokens[i]) and tokens[i + 1] == ')':
+            tokens[i] = '<number>'
 
     # remove punctuation from each word
     stripped = [w.translate(table) if not number_re.match(w) else '<number>' for w in tokens]
