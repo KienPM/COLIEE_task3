@@ -32,23 +32,22 @@ arg_parser.add_argument(
 )
 arg_parser.add_argument(
     '--ignore_auth',
-    type=bool,
     action="store_true",
     help='Ignore authenticate or not'
 )
 arg_parser.add_argument(
     '--data_file',
     type=str,
-    default='/media/ken/Temp/TrainingData/COLIEE_Task3/COLIEE2020statute_data-English/text/civil_code_en-1to724-2.txt',
     help='Path to Civil Code file'
 )
 
 MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
 MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
 
-article_re = re.compile(r'^Article\s*([0-9]+(-\d+)?)\s')
+part_re = re.compile(r'^Part\s*([MDCLXVI]+)\s')
 chapter_re = re.compile(r'^Chapter\s*([MDCLXVI]+)\s')
 section_re = re.compile(r'^Section\s*([0-9]+(-\d+)?)\s')
+article_re = re.compile(r'^Article\s*([0-9]+(-\d+)?)\s')
 deleted_articles_re = re.compile(r'^Articles.*(to|through|and).*Deleted$')
 
 
@@ -67,7 +66,8 @@ def run():
             print(i)
 
         line = line.strip()
-        if chapter_re.search(line) or section_re.search(line) or deleted_articles_re.match(line):
+        if part_re.search(line) or chapter_re.search(line) \
+                or section_re.search(line) or deleted_articles_re.match(line):
             continue
 
         if line[0] == '(' and line[-1] == ')':
