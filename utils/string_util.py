@@ -9,6 +9,7 @@ from nltk.corpus import wordnet
 table = str.maketrans('', '', string.punctuation)
 number_re = re.compile(r'^\d+([.,:-]\d+)*')
 clause_re = re.compile(r'^\(\d+\)')
+point_re = re.compile(r'^\([mdclxvi]+\)')
 lemmatizer = WordNetLemmatizer()
 
 
@@ -16,6 +17,11 @@ def remove_numbering(line):
     match_clause = clause_re.match(line)
     if match_clause:
         line = line[match_clause.span()[1] + 1:]
+
+    match_point = point_re.match(line)
+    if match_point:
+        line = line[match_point.span()[1] + 1:]
+
     return line
 
 
