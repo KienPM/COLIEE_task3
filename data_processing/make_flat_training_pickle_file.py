@@ -95,7 +95,7 @@ def main():
             ])
 
     os.makedirs("output", exist_ok=True)
-    with open("output/training_data.pkl", 'wb') as f:
+    with open("output/flat_training_data.pkl", 'wb') as f:
         pickle.dump(examples, f)
         f.close()
 
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     arg_parser.add_argument(
         '--max_article_len',
         type=int,
-        default=2000,
+        default=1000,
         help='Max article length'
     )
     arg_parser.add_argument(
