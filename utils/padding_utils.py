@@ -32,3 +32,10 @@ def pad_article(vec, max_num_sen, max_sen_len):
     if len(vec) < max_num_sen:
         vec.extend([[0] * max_sen_len] * (max_num_sen - len(vec)))
     return vec
+
+
+def pad_article_flat(vec, max_article_len):
+    vec = vec[:max_article_len]
+    if len(vec) < max_article_len:
+        vec += [0] * (max_article_len - len(vec))
+    return vec
