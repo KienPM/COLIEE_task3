@@ -14,7 +14,7 @@ from pymongo import MongoClient
 
 sys.path.append(os.path.dirname(os.getcwd()))
 from utils.string_util import sentence_to_seq
-from utils.padding_utils import pad_query, pad_sentence, pad_article_flat
+from utils.padding_utils import pad_query, pad_article_flat
 
 MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
 MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
@@ -79,7 +79,7 @@ def main():
                 content = all_articles_map[a]
                 a_seq = []
                 for s in content:
-                    a_seq.extend(pad_sentence(s, max_article_len))
+                    a_seq += s
                 a_seq = pad_article_flat(a_seq, max_article_len=max_article_len)
                 articles_seq.append(a_seq)
 
