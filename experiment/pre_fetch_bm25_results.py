@@ -29,7 +29,7 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     '--db_name',
     type=str,
-    default='COLIEE_Task3',
+    default='COLIEE_Task3_BERT',
     help='MongoDB DB name'
 )
 arg_parser.add_argument(
