@@ -42,26 +42,9 @@ arg_parser.add_argument(
     action="store_true",
     help='Ignore authenticate or not'
 )
-arg_parser.add_argument(
-    '--dict_file',
-    type=str,
-    default='output/dict.tsv',
-    help='Path to dict file'
-)
 
 MONGO_USER = os.getenv('MONGO_USER', 'COLIEE_Task3')
 MONGO_PASS = os.getenv('MONGO_PASS', 'abc13579')
-
-
-def parse_dict_file():
-    lines = open(args.dict_file, 'r').readlines()
-    dict_ = {}
-    for line in lines:
-        tokens = line.split('\t')
-        id_ = int(tokens[0].strip())
-        term = tokens[1].strip()
-        dict_[term] = id_
-    return dict_
 
 
 def process_article(content):
@@ -75,7 +58,7 @@ def process_article(content):
     for line in lines:
         sentences = sent_tokenize(line)
         for s in sentences:
-            seq = sentence_to_seq(s, text_to_seq_dict)
+            seq = sentence_to_seq(s)
             if seq is not None:
                 res.append(seq)
 
@@ -83,7 +66,7 @@ def process_article(content):
 
 
 def process_doc(document):
-    seq_title = sentence_to_seq(document["title"], text_to_seq_dict)
+    seq_title = sentence_to_seq(document["title"])
     seq_content = process_article(document["content"])
 
     input_collection.update_one(
@@ -113,8 +96,6 @@ if __name__ == '__main__':
 
     db = mongo_client[args.db_name]
     input_collection = db[args.db_input_collection]
-
-    text_to_seq_dict = parse_dict_file()
 
     docs = list(input_collection.find())
     for doc in tqdm(docs):

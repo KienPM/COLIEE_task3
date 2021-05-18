@@ -48,12 +48,11 @@ def parse_dict_file():
 
 
 def main():
-    text_to_seq_dict = parse_dict_file()
     all_articles, all_articles_map = load_all_articles()
     examples = []
     records = list(negative_sampling_collection.find())
     for record in tqdm(records):
-        query = sentence_to_seq(record['query'], text_to_seq_dict)
+        query = sentence_to_seq(record['query'])
         query = pad_query(query, max_query_len)
         record_negative = record["negative"][:num_es_negative + 5]
         taken = set(record["positive"] + record_negative)
@@ -95,7 +94,7 @@ def main():
             ])
 
     os.makedirs("output", exist_ok=True)
-    with open("output/training_data.pkl", 'wb') as f:
+    with open("output/training_data_bert.pkl", 'wb') as f:
         pickle.dump(examples, f)
         f.close()
 
