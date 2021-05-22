@@ -7,19 +7,15 @@ import os
 import sys
 import tensorflow as tf
 from tensorflow.keras.layers import *
+from custom_layers import FeatureExtractor, PaddingMask
 
 sys.path.append(os.path.dirname(os.getcwd()))
 
-INPUT_VOCAB_SIZE = 2245
 MAX_QUERY_LEN = 150
 MAX_NUM_SENTENCES = 35
 MAX_SENTENCE_LEN = 25
-GROUP_SIZE = 101
-D_EMBEDDING = 512
-D_CNN = 512
-KERNEL_SIZE = 3
+GROUP_SIZE = 31
 D_Q = 200
-DROPOUT_RATE = 0.2
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
@@ -32,77 +28,46 @@ def log_hyper_parameters(logger):
     logger.info(f"MAX_QUERY_LEN: {MAX_QUERY_LEN}")
     logger.info(f"MAX_NUM_SENTENCES: {MAX_NUM_SENTENCES}")
     logger.info(f"MAX_SENTENCE_LEN: {MAX_SENTENCE_LEN}")
-    logger.info(f"INPUT_VOCAB_SIZE: {INPUT_VOCAB_SIZE}")
     logger.info(f"GROUP_SIZE: {GROUP_SIZE}")
-    logger.info(f"D_EMBEDDING: {D_EMBEDDING}")
-    logger.info(f"D_CNN: {D_CNN}")
-    logger.info(f"KERNEL_SIZE: {KERNEL_SIZE}")
     logger.info(f"D_Q: {D_Q}")
     logger.info("-" * 10)
 
 
-def get_actual_sen_len(x):
-    not_zero_mask = tf.cast(tf.math.not_equal(x, 0), tf.float32)
-    actual_len = tf.reduce_sum(not_zero_mask, axis=-1)
-    return not_zero_mask, actual_len
-
-
-def create_empty_sen_mask(x):
-    sum_sen = tf.reduce_sum(x, axis=-1)
-    empty_sen_mask = tf.cast(tf.math.equal(sum_sen, 0), tf.float32)
-    return empty_sen_mask
-
-
-def create_model(embedding_matrix=None):
+def create_model():
     """
     Return: Model, Query encoder, Article encoder
     """
-    if embedding_matrix is not None:
-        embedding_layer = Embedding(INPUT_VOCAB_SIZE, D_EMBEDDING, weights=[embedding_matrix], trainable=True)
-    else:
-        embedding_layer = Embedding(INPUT_VOCAB_SIZE, D_EMBEDDING, trainable=True)
+    feature_extractor = FeatureExtractor()
 
     # Query branch
-    query_input = Input((MAX_QUERY_LEN,), dtype='int32')
+    query_input = Input((MAX_QUERY_LEN + 2,), dtype='int32')  # +2 for [CLS] and [SEP]
+    query_input_mask = PaddingMask()(query_input)
 
-    embedded_sequences_query = embedding_layer(query_input)
-    embedded_sequences_query = Dropout(DROPOUT_RATE)(embedded_sequences_query)
+    query_feature = feature_extractor([query_input, query_input_mask])
 
-    query_cnn = Convolution1D(filters=D_CNN, kernel_size=KERNEL_SIZE, padding='same', activation='relu', strides=1)(
-        embedded_sequences_query
-    )
-    query_cnn = Dropout(DROPOUT_RATE)(query_cnn)
-    query_cnn = LayerNormalization(epsilon=1e-6)(query_cnn)
-
-    attention_query = Dense(D_Q, activation='tanh')(query_cnn)
-    attention_query = Flatten()(Dense(1)(attention_query))
-    attention_weight_query = Activation('softmax')(attention_query)
-    query_rep = Dot((1, 1))([query_cnn, attention_weight_query])
+    query_attention = Dense(D_Q, activation='tanh')(query_feature)
+    query_attention = Flatten()(Dense(1)(query_attention))
+    query_attention_weight = Activation('softmax')(query_attention)
+    query_rep = Dot((1, 1))([query_feature, query_attention_weight])
 
     query_encoder = tf.keras.Model(query_input, query_rep)
 
     # Article branch
     # # Sentence encoder
-    sentence_input = Input(shape=(MAX_SENTENCE_LEN,), dtype='int32')
+    sentence_input = Input(shape=(MAX_SENTENCE_LEN + 2,), dtype='int32')  # +2 for [CLS] and [SEP]
+    sentence_input_mask = PaddingMask()(sentence_input)
 
-    sentence_embedded_sequences = embedding_layer(sentence_input)
-    sentence_embedded_sequences = Dropout(DROPOUT_RATE)(sentence_embedded_sequences)
+    sentence_feature = feature_extractor([sentence_input, sentence_input_mask])
 
-    sentence_cnn = Convolution1D(filters=D_CNN, kernel_size=KERNEL_SIZE, padding='same', activation='relu', strides=1)(
-        sentence_embedded_sequences
-    )
-    sentence_cnn = Dropout(DROPOUT_RATE)(sentence_cnn)
-    sentence_cnn = LayerNormalization(epsilon=1e-6)(sentence_cnn)
-
-    sentence_attention = Dense(D_Q, activation='tanh')(sentence_cnn)
+    sentence_attention = Dense(D_Q, activation='tanh')(sentence_feature)
     sentence_attention = Flatten()(Dense(1)(sentence_attention))
     sentence_attention_weight = Activation('softmax')(sentence_attention)
-    sentence_rep = Dot((1, 1))([sentence_cnn, sentence_attention_weight])
+    sentence_rep = Dot((1, 1))([sentence_feature, sentence_attention_weight])
 
     sentence_encoder = tf.keras.Model(sentence_input, sentence_rep)
 
     # # Article encoder
-    article_input = Input((MAX_NUM_SENTENCES, MAX_SENTENCE_LEN), dtype='int32')
+    article_input = Input((MAX_NUM_SENTENCES + 2, MAX_SENTENCE_LEN + 2), dtype='int32')  # +2 for [CLS] and [SEP]
     sentences_rep = TimeDistributed(sentence_encoder)(article_input)
 
     article_attention = Dense(D_Q, activation='tanh')(sentences_rep)
@@ -113,7 +78,8 @@ def create_model(embedding_matrix=None):
     article_encoder = tf.keras.Model(article_input, article_rep)
 
     # Scoring
-    articles_input = [Input((MAX_NUM_SENTENCES, MAX_SENTENCE_LEN), dtype='int32') for _ in range(GROUP_SIZE)]
+    # +2 for [CLS] and [SEP]
+    articles_input = [Input((MAX_NUM_SENTENCES + 2, MAX_SENTENCE_LEN + 2), dtype='int32') for _ in range(GROUP_SIZE)]
     articles_rep = [article_encoder(articles_input[_]) for _ in range(GROUP_SIZE)]
     logits = [dot([query_rep, a_rep], axes=-1) for a_rep in articles_rep]
     logits = concatenate(logits)
