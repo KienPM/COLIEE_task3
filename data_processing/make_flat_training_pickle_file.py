@@ -1,8 +1,3 @@
-"""
-Create by Ken at 2021 Jan 05
-Create pickle file for training
-Data structure for each example: [query sequence, articles, labels corresponding to articles (1~positive, 0~negative)]
-"""
 import os
 import argparse
 import sys
@@ -36,24 +31,12 @@ def load_all_articles():
     return all_articles, dict_
 
 
-def parse_dict_file():
-    lines = open(args.dict_file, 'r').readlines()
-    dict_ = {}
-    for line in lines:
-        tokens = line.split('\t')
-        id_ = int(tokens[0].strip())
-        term = tokens[1].strip()
-        dict_[term] = id_
-    return dict_
-
-
 def main():
-    text_to_seq_dict = parse_dict_file()
     all_articles, all_articles_map = load_all_articles()
     examples = []
     records = list(negative_sampling_collection.find())
     for record in tqdm(records):
-        query = sentence_to_seq(record['query'], text_to_seq_dict)
+        query = sentence_to_seq(record['query'])
         query = pad_query(query, max_query_len)
         record_negative = record["negative"][:num_es_negative + 5]
         taken = set(record["positive"] + record_negative)
@@ -95,7 +78,7 @@ def main():
             ])
 
     os.makedirs("output", exist_ok=True)
-    with open("output/flat_training_data.pkl", 'wb') as f:
+    with open("output/flat_training_data_bert.pkl", 'wb') as f:
         pickle.dump(examples, f)
         f.close()
 
@@ -158,7 +141,7 @@ if __name__ == '__main__':
     arg_parser.add_argument(
         '--max_article_len',
         type=int,
-        default=1000,
+        default=500,
         help='Max article length'
     )
     arg_parser.add_argument(
