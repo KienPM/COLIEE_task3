@@ -71,5 +71,31 @@ def statistic_article_flat_len():
         print(f'Length {len_list[i]} covers {len_list_count[i] / n}')
 
 
+def statistic_num_sen_with_sen_len(sen_len):
+    len_list = [i for i in range(20, 40, 5)]
+    len_list_count = [0] * len(len_list)
+
+    records = list(db['civil_code'].find({}, {'seq_title': 1, 'seq_content': 1}))
+    for record in tqdm(records):
+        if record['seq_title']:
+            content = [record['seq_title']]
+        else:
+            content = []
+        content += record['seq_content']
+
+        count = 0
+        for s in content:
+            count += math.ceil(len(s) / sen_len)
+
+        for i in range(len(len_list)):
+            if count <= len_list[i]:
+                len_list_count[i] += 1
+
+    n = len(records)
+    for i in range(len(len_list)):
+        print(f'Length {len_list[i]} covers {len_list_count[i] / n}')
+
+
 if __name__ == '__main__':
-    statistic_article_flat_len()
+    # statistic_article_flat_len()
+    statistic_num_sen_with_sen_len(25)
