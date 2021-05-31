@@ -5,13 +5,13 @@ import argparse
 from tqdm import tqdm
 import numpy as np
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import tensorflow as tf
 from pymongo import MongoClient
 
-sys.path.append(os.path.dirname(os.getcwd()))
+sys.path.append(os.path.join('..', os.path.dirname(os.getcwd())))
 from model.han_model import create_model
-from utils.padding_utils import pad_sentence, pad_article
+from utils.padding_utils import pad_article_flat
 
 arg_parser = argparse.ArgumentParser(description='Encode articles')
 arg_parser.add_argument(
@@ -50,16 +50,10 @@ arg_parser.add_argument(
     help='Ignore authenticate or not'
 )
 arg_parser.add_argument(
-    '--max_num_sen',
+    '--max_article_len',
     type=int,
-    default=35,
-    help='Max number of sentences per article'
-)
-arg_parser.add_argument(
-    '--max_sen_len',
-    type=int,
-    default=25,
-    help='Max sentence len'
+    default=500,
+    help='Max article len'
 )
 arg_parser.add_argument(
     '--exp_name',
@@ -77,15 +71,13 @@ db_port = args.db_port
 db_name = args.db_name
 exp_db_name = args.exp_db_name
 db_civil_code_collection = args.db_civil_code_collection
-max_num_sen = args.max_num_sen
-max_sen_len = args.max_sen_len
+max_article_len = args.max_article_len
 
 _, _, article_encoder = create_model()
-article_encoder_weights_path = f'../model/trained_models/{exp_name}/article_encoder.h5'
+article_encoder_weights_path = f'../model/flat_triplet_trained_models/{exp_name}/article_encoder.h5'
 print(f'>>> Load article encoder weights from {article_encoder_weights_path}')
 article_encoder.load_weights(article_encoder_weights_path)
-print(f'>>> max_num_sen: {max_num_sen}')
-print(f'>>> max_sen_len: {max_sen_len}')
+print(f'>>> max_article_len: {max_article_len}')
 
 if args.ignore_auth:
     mongo_client = MongoClient(args.db_host, args.db_port)
@@ -113,8 +105,8 @@ for article in tqdm(records):
         content = article['seq_content']
     article_seq = []
     for s in content:
-        article_seq.extend(pad_sentence(s, max_sen_len))
-    article_seq = pad_article(article_seq, max_num_sen=max_num_sen, max_sen_len=max_sen_len)
+        article_seq += s
+    article_seq = pad_article_flat(article_seq, max_article_len=max_article_len)
 
     article_seq = np.array(article_seq, dtype='int32')
     article_seq = article_seq[np.newaxis, :]
