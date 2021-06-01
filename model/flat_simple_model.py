@@ -5,7 +5,6 @@ from custom_layers import FeatureExtractor, PaddingMask
 
 MAX_QUERY_LEN = 150
 MAX_ARTICLE_LEN = 500
-GROUP_SIZE = 11
 D_Q = 200
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -18,7 +17,6 @@ def log_hyper_parameters(logger):
     logger.info("Hyper parameters")
     logger.info(f"MAX_SENTENCE_LEN: {MAX_QUERY_LEN}")
     logger.info(f"MAX_ARTICLE_LEN: {MAX_ARTICLE_LEN}")
-    logger.info(f"GROUP_SIZE: {GROUP_SIZE}")
     logger.info(f"D_Q: {D_Q}")
     logger.info("-" * 10)
 
