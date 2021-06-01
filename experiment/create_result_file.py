@@ -66,6 +66,12 @@ arg_parser.add_argument(
     help='Limit number of results from ES output file'
 )
 arg_parser.add_argument(
+    '--max_query_len',
+    type=int,
+    default=150,
+    help='ES score weight when compute final score'
+)
+arg_parser.add_argument(
     '--es_score_weight',
     type=float,
     default=0.0,
@@ -158,7 +164,7 @@ def run():
         articles_rep = np.array(articles_rep)
 
         query = sentence_to_seq(example["query"], text_to_seq_dict)
-        query = pad_query(query, 40)
+        query = pad_query(query, max_query_len=max_query_len)
         query = np.array(query, dtype='int32')
         query = query[np.newaxis, :]
         query_rep = query_encoder(query)
@@ -207,6 +213,7 @@ if __name__ == '__main__':
     db_test_data_collection = args.db_test_data_collection
     db_encoded_article_collection = exp_name + '_encoded_articles'
     query_encoder_weights_path = "../model/trained_models/{}/query_encoder.h5".format(exp_name)
+    max_query_len = args.max_query_len
     es_output_file = args.es_output_file
     es_output_limit = args.es_output_limit
     es_score_weight = args.es_score_weight
