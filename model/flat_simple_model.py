@@ -55,7 +55,7 @@ def create_model():
 
     # Scoring
     logits = tf.keras.layers.dot([query_rep, article_rep], axes=-1)
-    logits = tf.keras.layers.Activation(tf.keras.activations.softmax)(logits)
+    logits = tf.keras.layers.Activation(tf.keras.activations.sigmoid)(logits)
 
     model = tf.keras.Model([query_input, article_input], logits)
 
@@ -63,5 +63,6 @@ def create_model():
 
 
 if __name__ == '__main__':
-    model, _, _ = create_model()
-    model.summary()
+    model, q_e, a_e = create_model()
+    q_e.summary()
+    a_e.summary()
