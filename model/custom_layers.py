@@ -19,8 +19,8 @@ class FeatureExtractor(tf.keras.layers.Layer):
         super(FeatureExtractor, self).__init__()
         config = BertConfig.from_pretrained("nlpaueb/legal-bert-base-uncased", output_hidden_states=False)
         self.legal_bert = TFBertModel.from_pretrained("nlpaueb/legal-bert-base-uncased", config=config)
-        self.legal_bert.layers[0]._layers[0].trainable = False
-        for layer in self.legal_bert.layers[0]._layers[1]._layers[0]._layers[:10]:
+        self.legal_bert.layers[0].embeddings.trainable = False
+        for layer in self.legal_bert.layers[0].encoder.layer.layers[:10]:
             layer.trainable = False
 
     def call(self, inputs):
